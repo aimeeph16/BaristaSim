@@ -71,33 +71,25 @@
             scene.collisionsEnabled = true;
             scene.gravity = new BABYLON.Vector3(0, -0.15, 0);
             
-            // createCamera();
-            // //camera.applyGravity = true;
-            // camera.ellipsoid = new BABYLON.Vector3(0.3, 0.6, 0.1);
-            // //camera.position = new BABYLON.Vector3(-9.5, 1.2, 7);
-            // //camera.checkCollisions = true;
-
-            // Parameters: name, alpha, beta, radius, target position, scene
-            var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene);
-
-            // Positions the camera overwriting alpha, beta, radius
-            camera.setPosition(new BABYLON.Vector3(0, 0, 20));
-
-            // This attaches the camera to the canvas
+            createCamera();
+            //camera.applyGravity = true;
+            //camera.ellipsoid = new BABYLON.Vector3(0.3, 1.5, 0.1);
+            //camera.rotation.x = 90; 
+            //camera.position = new BABYLON.Vector3(-20, 1.2, 20);
+            //camera.checkCollisions = true;
+            // Targets the camera to a particular position. In this case the scene origin
+            //camera.setTarget(BABYLON.Vector3.Zero());
             camera.attachControl(canvas, true);
-        
-            var light = new BABYLON.PointLight("Omni", new BABYLON.Vector3(0, 3, 0), scene);
-            light.instensity = 2;
 
-            // var cafeMesh = BABYLON.SceneLoader.ImportMeshAsync("", "coffee_shop/", "scene.gltf", scene).then((result) => {
-            //     for (var i = 0; i < result.meshes.length; i++)
-            //     {
-            //         var cafe = result.meshes[i];
-            //     };
-            // });
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+            light.instensity = 100;
             
-            const cafe = BABYLON.SceneLoader.ImportMeshAsync("", "assets/coffee_shop/", "scene.gltf", scene);
+            var material = new BABYLON.StandardMaterial("mat0", scene);
+            material.diffuseColor = new BABYLON.Texture("Assets/coffee-shop/textures/MAT_GlassWall_baseColor.png", scene);
 
+            const cafe = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-shop/", "scene.gltf", scene);
+            cafe.material = material;
+        
             return scene;
         };
         
@@ -105,12 +97,12 @@
         
         var createCamera = function () {
             camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(0, 1, 0), scene);
-        
+
             scene.onPointerDown = function () {
                 scene.onPointerDown = undefined
                 camera.attachControl(canvas, true);
-                camera.inputs.attached.virtualJoystick.getLeftJoystick().setJoystickSensibility(0.006);
-                camera.inputs.attached.virtualJoystick.getRightJoystick().setJoystickSensibility(0.006);
+                camera.inputs.attached.virtualJoystick.getLeftJoystick().setJoystickSensibility(0.1);
+                camera.inputs.attached.virtualJoystick.getRightJoystick().setJoystickSensibility(0.005);
             }
         };
         
