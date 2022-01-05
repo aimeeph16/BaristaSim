@@ -75,10 +75,8 @@
             //camera.applyGravity = true;
             //camera.ellipsoid = new BABYLON.Vector3(0.3, 1.5, 0.1);
             //camera.rotation.x = 90; 
-            //camera.position = new BABYLON.Vector3(-20, 1.2, 20);
+            //camera.position = new BABYLON.Vector3(-100, 5, 20);
             //camera.checkCollisions = true;
-            // Targets the camera to a particular position. In this case the scene origin
-            //camera.setTarget(BABYLON.Vector3.Zero());
             camera.attachControl(canvas, true);
 
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
@@ -96,7 +94,9 @@
         var VJC;
         
         var createCamera = function () {
-            camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(0, 1, 0), scene);
+            //camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(0, 1, 0), scene);
+            camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(-44, 170, -323), scene);
+            camera.rotation.y +=9.5;
 
             scene.onPointerDown = function () {
                 scene.onPointerDown = undefined
