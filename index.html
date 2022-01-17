@@ -1,132 +1,124 @@
-<!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
         <title>Babylon.js sample code</title>
-
-        <!-- Babylon.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
-        <script src="https://preview.babylonjs.com/ammo.js"></script>
-        <script src="https://preview.babylonjs.com/cannon.js"></script>
-        <script src="https://preview.babylonjs.com/Oimo.js"></script>
-        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
         <script src="https://preview.babylonjs.com/babylon.js"></script>
-        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
-        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
-        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
-        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
         <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
         <style>
-            html, body {
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-            }
-
-            #renderCanvas {
-                width: 100%;
-                height: 100%;
-                touch-action: none;
-            }
+            body,#renderCanvas { width: 100%; height: 100%;}
         </style>
     </head>
 <body>
     <canvas id="renderCanvas"></canvas>
-    <script>
-        var canvas = document.getElementById("renderCanvas");
+    <script type="text/javascript">
+        const canvas = document.getElementById("renderCanvas");
+        //const engine = new BABYLON.Engine(canvas, true);
+    
+        const createScene = function() {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3.Black;
 
-        var engine = null;
-        var scene = null;
-        var sceneToRender = null;
-        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-        var scene;
-        var camera;
-        var box;
-        var torus;
-        var knot;
-        var box1;
-        var box2;
-        var box3;
-        var cubes = [];
-        var textBlocks = [];
-        var target;
-        var target2;
-        var particleSystem;
-        var haloCenter = new BABYLON.Vector3(0, 0, 0);
-        
-        var objectSelected = false;
-        var objectSelecting = false;
-        var currentMeshSelected = null;
-        var teleportationAllowed;
-        
-        var createScene = function () {
-            scene = new BABYLON.Scene(engine);
-            scene.useRightHandedSystem = false;
-            scene.collisionsEnabled = true;
-            scene.gravity = new BABYLON.Vector3(0, -0.15, 0);
-            
-            createCamera();
-            //camera.applyGravity = true;
-            //camera.ellipsoid = new BABYLON.Vector3(0.3, 1.5, 0.1);
-            //camera.rotation.x = 90; 
-            //camera.position = new BABYLON.Vector3(-100, 5, 20);
-            camera.checkCollisions = true;
+            const alpha =  Math.PI/2;
+            const beta = Math.PI/2;
+            const radius = 10;
+            const target = new BABYLON.Vector3(-44, 170, -323);
+
+            const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
             camera.attachControl(canvas, true);
+            //camera.position = new BABYLON.Vector3(-44, 170, -323);
+            //camera.rotation.y += 9.5;
 
-            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
-            light.instensity = 100;
-            
-            var material = new BABYLON.StandardMaterial("mat0", scene);
-            material.diffuseColor = new BABYLON.Texture("Assets/coffee-shop/textures/MAT_GlassWall_baseColor.png", scene);
-
-            const cafe = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-shop/", "scene.gltf", scene);
-            cafe.material = material;
-        
-            return scene;
-        };
-        
-        var VJC;
-        
-        var createCamera = function () {
-            //camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(0, 1, 0), scene);
-            camera = new BABYLON.VirtualJoysticksCamera("vrCam", new BABYLON.Vector3(-44, 170, -323), scene);
-            camera.rotation.y +=9.5;
-
-            scene.onPointerDown = function () {
-                scene.onPointerDown = undefined
-                camera.attachControl(canvas, true);
-                camera.inputs.attached.virtualJoystick.getLeftJoystick().setJoystickSensibility(0.1);
-                camera.inputs.attached.virtualJoystick.getRightJoystick().setJoystickSensibility(0.005);
-            }
-        };
-        
-                window.initFunction = async function() {
-                    
-                    
-                    var asyncEngineCreation = async function() {
-                        try {
-                        return createDefaultEngine();
-                        } catch(e) {
-                        console.log("the available createEngine function failed. Creating the default engine instead");
-                        return createDefaultEngine();
-                        }
-                    }
-
-                    window.engine = await asyncEngineCreation();
-        if (!engine) throw 'engine should not be null.';
-        window.scene = createScene();};
-        initFunction().then(() => {sceneToRender = scene        
-            engine.runRenderLoop(function () {
-                if (sceneToRender && sceneToRender.activeCamera) {
-                    sceneToRender.render();
-                }
+            var environment =  scene.createDefaultEnvironment({ 
+                    createSkybox: false,
+                    // skyboxSize: 150,
+                    // skyboxColor: BABYLON.Color3.Teal(),
+                    createGround: true,
+                    groundSize: 2000,
+                    // groundColor: BABYLON.Color3.Green(),
+                    enableGroundShadow: true, 
+                    groundYBias: 1 
             });
+
+            // var skyMaterial = new BABYLON.StandardMaterial("skybox", scene);
+            //     skyMaterial.backFaceCulling = false;
+            //     skyMaterial.reflectionTexture = new BABYLON.CubeTexture("Assets/skybox2", scene);
+            //     skyMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+            //     skyMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+            //     skyMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+                
+            // var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:2000.0}, scene);
+            //     skybox.position = new BABYLON.Vector3(0,0,-300);
+            //     skybox.material = skyMaterial;
+
+            var vrHelper = scene.createDefaultVRExperience({
+                createDeviceOrientationCamera: false
+            })
+
+            vrHelper.enableTeleportation({floorMeshes: [environment.ground]})
+            
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+
+            var cafe = BABYLON.SceneLoader.Append("Assets/coffee-shop/", "scene.gltf", scene, function (meshes) {    
+                //scene.createDefaultCameraOrLight(true, true, true); 
+            });
+
+            // const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 4, height: 4});
+
+            // const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
+            // camera.attachControl(canvas, true);
+
+            // const box = BABYLON.MeshBuilder.CreateBox("box", {});
+            // box.position.x = 0.5;
+            // box.position.y = 1;
+
+            // const boxMaterial = new BABYLON.StandardMaterial("material", scene);
+            // boxMaterial.diffuseColor = BABYLON.Color3.Random();
+            // box.material = boxMaterial;
+
+            // box.actionManager = new BABYLON.ActionManager(scene);
+            // box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(
+            //     BABYLON.ActionManager.OnPickTrigger, 
+            //     function (evt) {
+            //         const sourceBox = evt.meshUnderPointer;
+
+            //         //move the box upright
+            //         sourceBox.position.x += 0.1;
+            //         sourceBox.position.y += 0.1;
+
+            //         //update the color
+            //         boxMaterial.diffuseColor = BABYLON.Color3.Random();
+            //     }
+            // ));
+            
+                // //-------------- vr stuff ---------------//
+                // const xrPromise = scene.createDefaultXRExperienceAsync({
+                //     floorMeshes: [ground]
+                // });
+                
+                // return xrPromise.then((xrExperience) => {
+                //     console.log("Done, WebXR is enabled.");
+                //     return scene;
+                // });
+                // //-------------- vr stuff ---------------//
+            return scene;
+        }
+
+        // createScene().then(sceneToRender => {
+        //     engine.runRenderLoop(() => sceneToRender.render());
+        // });
+        // const sceneToRender = createScene();
+
+        var engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+            var scene = createScene();
+
+        engine.runRenderLoop(function () {
+            if (scene) {
+                scene.render();
+            }
         });
 
         // Resize
