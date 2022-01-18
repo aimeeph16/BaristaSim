@@ -72,28 +72,17 @@
             const box = BABYLON.MeshBuilder.CreateBox("box", {height: 3, width: 3, depth: 3} );
         
             var environment = scene.createDefaultEnvironment({ 
+                createSkybox: false,
                 createGround: true,
                 //groundSize: 1000,
-                groundColor: BABYLON.Color3.Green(),
+                //groundColor: BABYLON.Color3.Green(),
                 enableGroundShadow: true 
             });
-            //environment.setMainColor(BABYLON.Color3.FromHexString("#74b9ff"))
             
             environment.ground.parent.scaling = new BABYLON.Vector3(5,5,5);
             environment.ground.parent.position = new BABYLON.Vector3(0,0,-60 );
             environment.ground.position.y = 0;
 
-
-//             var environment =  scene.createDefaultEnvironment({ 
-//                     createSkybox: false,
-// //                    skyboxSize: 150,
-// //                    skyboxColor: BABYLON.Color3.Teal(),
-//                     createGround: true,
-//                     groundSize: 1000,
-//                     groundColor: BABYLON.Color3.Green(),
-//                     enableGroundShadow: true, 
-//                     groundYBias: 1 
-//             });
 
             
             // XR
@@ -104,183 +93,23 @@
 
             xrHelper.teleportation.attach();
 
-            // const featuresManager = xrHelper.baseExperience.featuresManager; // or any other way to get a features manager
-            // featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable" /* or latest */, {
-            //     xrInput: xr.input,
-            //     // add options here
-            //     floorMeshes: [ground],
-            // });
+
 
             xrHelper.baseExperience.onStateChangedObservable.add((state)=>{
         
         			if(state === BABYLON.WebXRState.IN_XR){
         
                         scene.activeCamera.position.y = 15;
-                        // scene.activeCamera.position.x = 1;
-                        // scene.activeCamera.position.z = 3;
+                        scene.activeCamera.onAfterCameraTeleport.add((targetPosition) => {
+                            //var y = environment.ground.getHeightAtCoordinates(targetPosition.x,targetPosition.z) + 2;
+                            scene.activeCamera.position.y = 15;
+                        });
         
                     }
         
             });
-        
-            return scene;
-        
-        };
-                window.initFunction = async function() {
-                    
-                    
-                    var asyncEngineCreation = async function() {
-                        try {
-                        return createDefaultEngine();
-                        } catch(e) {
-                        console.log("the available createEngine function failed. Creating the default engine instead");
-                        return createDefaultEngine();
-                        }
-                    }
-
-                    window.engine = await asyncEngineCreation();
-        if (!engine) throw 'engine should not be null.';
-        window.scene = createScene();};
-        initFunction().then(() => {scene.then(returnedScene => { sceneToRender = returnedScene; });
-                
-            engine.runRenderLoop(function () {
-                if (sceneToRender && sceneToRender.activeCamera) {
-                    sceneToRender.render();
-                }
-            });
-        });
-
-        // Resize
-        window.addEventListener("resize", function () {
-            engine.resize();
-        });
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-        <title>Babylon.js sample code</title>
-
-        <!-- Babylon.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
-        <script src="https://preview.babylonjs.com/ammo.js"></script>
-        <script src="https://preview.babylonjs.com/cannon.js"></script>
-        <script src="https://preview.babylonjs.com/Oimo.js"></script>
-        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
-        <script src="https://preview.babylonjs.com/babylon.js"></script>
-        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
-        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
-        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
-        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
-        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
-        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
-        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-
-        <style>
-            html, body {
-                overflow: hidden;
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-            }
-
-            #renderCanvas {
-                width: 100%;
-                height: 100%;
-                touch-action: none;
-            }
-        </style>
-    </head>
-<body>
-    <canvas id="renderCanvas"></canvas>
-    <script>
-        var canvas = document.getElementById("renderCanvas");
-
-        var engine = null;
-        var scene = null;
-        var sceneToRender = null;
-        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-        var createScene = async function () {
-        
-            // This creates a basic Babylon Scene object (non-mesh)
-            var scene = new BABYLON.Scene(engine);
-        
-            const alpha =  Math.PI/2;
-            const beta = Math.PI/2;
-            const radius = 10;
-            const target = new BABYLON.Vector3(-4.4, 17, -35.3);
-
-            const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
-            camera.attachControl(canvas, true);
-        
-            // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-            var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-        
-            // Default intensity is 1. Let's dim the light a small amount
-            light.intensity = 0.7;
-        
-            var cafe = BABYLON.SceneLoader.Append("Assets/coffee-shop/", "scene3.gltf", scene, function (meshes) {    
-                //scene.createDefaultCameraOrLight(true, true, true); 
-                //meshes.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
-            });
-
-            const box = BABYLON.MeshBuilder.CreateBox("box", {height: 3, width: 3, depth: 3} );
-        
-            var environment = scene.createDefaultEnvironment({ 
-                createGround: true,
-                //groundSize: 1000,
-                groundColor: BABYLON.Color3.Green(),
-                enableGroundShadow: true 
-            });
-            //environment.setMainColor(BABYLON.Color3.FromHexString("#74b9ff"))
-            
-            environment.ground.parent.scaling = new BABYLON.Vector3(5,5,5);
-            environment.ground.parent.position = new BABYLON.Vector3(0,0,-60 );
-            environment.ground.position.y = 0;
-
-
-//             var environment =  scene.createDefaultEnvironment({ 
-//                     createSkybox: false,
-// //                    skyboxSize: 150,
-// //                    skyboxColor: BABYLON.Color3.Teal(),
-//                     createGround: true,
-//                     groundSize: 1000,
-//                     groundColor: BABYLON.Color3.Green(),
-//                     enableGroundShadow: true, 
-//                     groundYBias: 1 
-//             });
 
             
-            // XR
-            const xrHelper = await scene.createDefaultXRExperienceAsync({ 
-                floorMeshes: [environment.ground]
-            })
-            //const xrHelper = await WebXRExperienceHelper.CreateAsync(scene);
-
-            xrHelper.teleportation.attach();
-
-            // const featuresManager = xrHelper.baseExperience.featuresManager; // or any other way to get a features manager
-            // featuresManager.enableFeature(WebXRFeatureName.TELEPORTATION, "stable" /* or latest */, {
-            //     xrInput: xr.input,
-            //     // add options here
-            //     floorMeshes: [ground],
-            // });
-
-            xrHelper.baseExperience.onStateChangedObservable.add((state)=>{
-        
-        			if(state === BABYLON.WebXRState.IN_XR){
-        
-                        scene.activeCamera.position.y = 15;
-                        // scene.activeCamera.position.x = 1;
-                        // scene.activeCamera.position.z = 3;
-        
-                    }
-        
-            });
         
             return scene;
         
