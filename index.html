@@ -125,6 +125,39 @@
                 //meshes.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
             });
 
+            var coffeeMachine = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-machine-2/", "scene.gltf", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var coffeeMachine = result.meshes[i];
+                    coffeeMachine.scaling = new BABYLON.Vector3(2.5, 2.5, 2.5);
+                    coffeeMachine.position = new BABYLON.Vector3(25, 13, -51);
+                    coffeeMachine.rotation.x = alpha;
+                }
+            });
+
+            var milk = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/milk-jug/", "scene.gltf", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var milk = result.meshes[i];
+                    milk.scaling = new BABYLON.Vector3(0.9, 0.9, 0.9);
+                    milk.position = new BABYLON.Vector3(34, 13.1, -47);
+                }
+            });
+
+            var cup = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-cup/", "coffee-cup.obj", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var cup = result.meshes[i];
+                    cup.scaling = new BABYLON.Vector3(10, 10, 10);
+                    cup.position = new BABYLON.Vector3(28, 14, -47);
+                }
+            });
+
+            // var glass = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/ikea-glass/", "scene.gltf", scene).then((result) => {
+            //     for (var i = 0; i < result.meshes.length; i++){
+            //         var glass = result.meshes[i];
+            //         glass.scaling = new BABYLON.Vector3(1,1,1);
+            //         glass.position = new BABYLON.Vector3(30, 16, -47);
+            //     }
+            // });
+
             //----------------------------------------------------------//
     
             //--------------------------------------------------------//
