@@ -45,6 +45,15 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        
+        //--------------//
+        BABYLON.GUI.StackPanel3D.prototype._createNode = function(scene) {
+            return new BABYLON.MeshBuilder.CreatePlane("panel", {size:2}, scene);
+        }
+
+        var stayUp = false;
+        //-------------//
+        
         var createScene = async function () {
         
             // This creates a basic Babylon Scene object (non-mesh)
@@ -73,15 +82,17 @@
                 enableGroundShadow: true 
             });
             
+            var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:4000.0}, scene);
+	        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+	        skyboxMaterial.backFaceCulling = false;
+	        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("Assets/textures/skybox2", scene);
+	        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+	        skyboxMaterial.disableLighting = true;
+	        skybox.material = skyboxMaterial;
+
             environment.ground.parent.scaling = new BABYLON.Vector3(5,5,5);
             environment.ground.parent.position = new BABYLON.Vector3(0,0,-60 );
             environment.ground.position.y = 0;
-
-            var box = BABYLON.Mesh.CreateBox("box", 4.0, scene);
-            box.position = target;
-            box.position.z += 10;
-            box.position.z += -15;
-            box.isPickable = true;
 
 
             var cafe = BABYLON.SceneLoader.Append("Assets/coffee-shop/", "scene3.gltf", scene, function (meshes) {    
@@ -89,7 +100,9 @@
                 //meshes.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
             });
 
-            //const box = BABYLON.MeshBuilder.CreateBox("box", {height: 3, width: 3, depth: 3} );
+            //----------------------------------------------------------//
+    
+            //--------------------------------------------------------//
 
             const tmpRay = new BABYLON.Ray();
             tmpRay.origin = new BABYLON.Vector3();
@@ -136,7 +149,8 @@
                                             //console.log("name:"+hit.pickedMesh.name);
                                             //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
                                             tmpMesh.showBoundingBox = true;
-                                            tmpMesh.setParent(motionController.rootMesh);
+                                            tmpMesh.setParent(motionController.rootMesh);           
+                                        
                                         } else {
                                             tmpMesh = hit.pickedMesh;
                                             console.log("name:"+hit.pickedMesh.name);
@@ -160,12 +174,14 @@
                 })
 
             });    
-
-            
-        
             return scene;
         
         };
+
+        //----------//
+        
+        //---------//
+
                 window.initFunction = async function() {
                     
                     
