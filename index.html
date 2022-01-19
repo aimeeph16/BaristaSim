@@ -177,6 +177,23 @@
             }
             );
 
+            var startPosition = new BABYLON.Vector3(-200, 14, -130);
+            var endPosition = new BABYLON.Vector3(200, 14, -130);
+
+            var car = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/car_scene/", "scene2.gltf", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var car = result.meshes[i];
+                    car.position = startPosition;
+                    for (var j = 0; j < result.meshes.length; j++){
+                        var car = result.meshes[j];
+                        BABYLON.Animation.CreateAndStartAnimation("anim", car, "position", 30, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    }
+
+                    
+                }
+            }
+            );
+
             showName = function (obj) {
                 var plane = BABYLON.MeshBuilder.CreatePlane('guiPlane', { width: 1, height: 0.1 }, scene);
                 plane.position = obj.position;
@@ -251,6 +268,8 @@
 
             //var light2 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(0, 0, 0), scene);
             var light2 = new BABYLON.DirectionalLight("DirectionalLight", new BABYLON.Vector3(0,0,0), scene);
+            light.diffuse = new BABYLON.Color3(1, 0, 0);
+	        light.specular = new BABYLON.Color3(0, 1, 0);
             light2.range = 200;
             light2.intensity = 2;
             light2.parent = sun;
@@ -280,6 +299,24 @@
             materialSphere2.emissiveColor = new BABYLON.Color3(1.0, 1.0, 0.7);
             sun2.material = materialSphere;
 
+            
+            const fadeAnimation = new BABYLON.Animation(
+                                        "fadeAnimation",
+                                        "visibility",
+                                        30,
+                                        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                                        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE,
+                                    );
+                                    const keys = [{
+                                        frame: 0,
+                                        value: 1
+                                    }, {
+                                        frame: 50,
+                                        value: 0
+                                    }, {
+                                        frame: 100,
+                                        value: 1
+                                    }];
             //light.setEnabled(false);
             // light3.setEnabled(false);
 
@@ -342,6 +379,11 @@
                                     tmpMesh.showBoundingBox = true;
                                     if (hit.pickedMesh.name != 'Stereo_Receiver_blinn2_0'){
                                         tmpMesh.setParent(motionController.rootMesh);
+                                    } else if (hit.pickedMesh.name == 'lswitch') {
+                                        
+                                        fadeAnimation.setKeys(keys);
+                                        light2.animations.push(fadeAnimation);
+                                        scene.beginAnimation(light2, 0, 100, true);
                                     } else {
                                         tmpMesh.setParent(null);
                                     }
@@ -362,53 +404,7 @@
 
             })
 
-        });
-            // xrHelper.input.onControllerAddedObservable.add((controller) => {
-            //     controller.onMotionControllerInitObservable.add((motionController) => {
-            //         if (motionController.handness === 'right') {
-            //                 const xr_ids = motionController.getComponentIds();
-            //                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
-            //                 triggerComponent.onButtonStateChangedObservable.add(() => {
-            //                     if(triggerComponent.value > 0.5){
-            //                         controller.getWorldPointerRayToRef(tmpRay, true);
-            //                         hit = scene.pickWithRay(tmpRay);
-            //                         // if (hit.pickedMesh.name === 'stereo') {
-            //                         //     if (musicOn == false){
-            //                         //         console.log('music is playing');
-            //                         //         music.play();
-                                            
-            //                         //     } else if (musicOn == true){
-            //                         //         music.stop();
-            //                         //     }
-            //                         // } else {
-
-
-            //                         if (hit.pickedMesh !=undefined){
-            //                             tmpMesh = hit.pickedMesh;
-            //                             console.log("name:"+hit.pickedMesh.name);
-            //                             //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
-            //                             tmpMesh.showBoundingBox = true;
-            //                             tmpMesh.setParent(motionController.rootMesh);
-            //                         }
-            //                         // }
-            //                     //released button
-            //                     }else if (triggerComponent.value < 0.5){
-            //                         if (tmpMesh !=undefined){
-            //                         // tmpMesh.parent= null;
-            //                             tmpMesh.setParent(null);
-            //                         }
-                                
-            //                     }
-            //                 });
-
-            //         }
-
-            //     })
-
-            // });    
-
-            
-        
+        });   
             return scene;
         
         };
