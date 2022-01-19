@@ -45,7 +45,6 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-        
         //--------------//
         BABYLON.DefaultLoadingScreen.prototype.displayLoadingUI = function () {
             if (document.getElementById("customLoadingScreenDiv")) {
@@ -78,7 +77,7 @@
             console.log("scene is now loaded");
         }
         //-------------//
-        
+
         var createScene = async function () {
         
             // This creates a basic Babylon Scene object (non-mesh)
@@ -96,8 +95,12 @@
             var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
         
             // Default intensity is 1. Let's dim the light a small amount
-            light.intensity = 0.7;
-        
+            light.intensity = 0.3;
+            
+            scene.enablePhysics();
+            await Ammo();
+            scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.AmmoJSPlugin());
+            //scene.gravity = new BABYLON.Vector3(0, -0.15, 0);
         
             var environment = scene.createDefaultEnvironment({ 
                 createSkybox: false,
@@ -106,7 +109,10 @@
                 //groundColor: BABYLON.Color3.Green(),
                 enableGroundShadow: true 
             });
-            
+
+            let bgp = scene.getMeshByName("BackgroundPlane");
+            bgp.isPickable = false;
+
             var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:4000.0}, scene);
 	        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
 	        skyboxMaterial.backFaceCulling = false;
@@ -114,16 +120,24 @@
 	        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
 	        skyboxMaterial.disableLighting = true;
 	        skybox.material = skyboxMaterial;
-
-            environment.ground.parent.scaling = new BABYLON.Vector3(5,5,5);
-            environment.ground.parent.position = new BABYLON.Vector3(0,0,-60 );
+            
+            environment.ground.parent.scaling = new BABYLON.Vector3(5, 5, 5);
+            environment.ground.parent.position = new BABYLON.Vector3(0, 0, -60 );
             environment.ground.position.y = 0;
 
+            // var box = BABYLON.MeshBuilder.CreateBox("box", {size: 3}, scene);
+            // box.position = box.position = new BABYLON.Vector3(20, 17, -40);
+            // box.isPickable = true;
 
-            var cafe = BABYLON.SceneLoader.Append("Assets/coffee-shop/", "scene3.gltf", scene, function (meshes) {    
-                //scene.createDefaultCameraOrLight(true, true, true); 
-                //meshes.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
-            });
+            
+
+            var cafe = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-shop/", "scene3.gltf", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var cafe = result.meshes[i];
+                    cafe.isPickable = false;
+                }
+            }
+            );
 
             var coffeeMachine = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-machine-2/", "scene.gltf", scene).then((result) => {
                 for (var i = 0; i < result.meshes.length; i++){
@@ -139,28 +153,144 @@
                     var milk = result.meshes[i];
                     milk.scaling = new BABYLON.Vector3(0.9, 0.9, 0.9);
                     milk.position = new BABYLON.Vector3(34, 13.1, -47);
+                    milk.showBoundingBox = true;
                 }
             });
 
-            var cup = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/coffee-cup/", "coffee-cup.obj", scene).then((result) => {
+            var cup = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/", "coffee-cup.obj", scene).then((result) => {
                 for (var i = 0; i < result.meshes.length; i++){
                     var cup = result.meshes[i];
                     cup.scaling = new BABYLON.Vector3(10, 10, 10);
                     cup.position = new BABYLON.Vector3(28, 14, -47);
+                    cup.showBoundingBox = true;
+                    //showName(cup);
                 }
             });
 
-            // var glass = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/ikea-glass/", "scene.gltf", scene).then((result) => {
-            //     for (var i = 0; i < result.meshes.length; i++){
-            //         var glass = result.meshes[i];
-            //         glass.scaling = new BABYLON.Vector3(1,1,1);
-            //         glass.position = new BABYLON.Vector3(30, 16, -47);
-            //     }
-            // });
+            var stereo = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/stereo/", "scene.gltf", scene).then((result) => {
+                for (var i = 0; i < result.meshes.length; i++){
+                    var stereo = result.meshes[i];
+                    stereo.scaling = new BABYLON.Vector3(1.5, 1.5, 1.5);
+                    stereo.position = new BABYLON.Vector3(7, 15.5, -48);
+                    stereo.rotation = new BABYLON.Vector3(0, 9, 0);
+                }
+            }
+            );
 
-            //----------------------------------------------------------//
-    
-            //--------------------------------------------------------//
+            showName = function (obj) {
+                var plane = BABYLON.MeshBuilder.CreatePlane('guiPlane', { width: 1, height: 0.1 }, scene);
+                plane.position = obj.position;
+                plane.position.y += 2;
+
+                // GUI
+                var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane, 1024, 102.4);
+
+                var rect1 = new BABYLON.GUI.Rectangle();
+                rect1.background = 'black';
+                rect1.height = 1;
+                rect1.adaptWidthToChildren = true;
+                advancedTexture.addControl(rect1);
+
+                var textBlock = new BABYLON.GUI.TextBlock('textblock', 'hello world!');
+                textBlock.color = 'white';
+                textBlock.fontSize = '36px';
+                textBlock.fontFamily = "'Segoe UI', 'Segoe UI Web (West European)', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'Helvetica Neue', 'sans serif'";
+                textBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                textBlock.paddingLeft = 20;
+                textBlock.paddingRight = 20;
+                textBlock.resizeToFit = true;
+                rect1.addControl(textBlock);
+
+                var counter = 0;
+                var id = setInterval(() => {
+                    if (counter % 2) {
+                        textBlock.text = obj.name;
+                    } else {
+                        textBlock.text = obj.name;
+                    }
+                    ++counter;
+                }, 1000);
+
+                scene.onDisposeObservable.add(() => clearInterval(id));
+
+            }
+
+            
+            // scene.onDisposeObservable.add(() => clearInterval(id));var counter = 0;
+            // var id = setInterval(() => {
+            //     if (counter % 2) {
+            //         textBlock.text = 'Some pretty long text...';
+            //     } else {
+            //         textBlock.text = 'short';
+            //     }
+            //     ++counter;
+            // }, 1000);
+
+            // scene.onDisposeObservable.add(() => clearInterval(id));
+
+            //var music = new BABYLON.Sound("music", "Assets/Assets_Audio_good morning watatsumi (320 kbps).mp3", scene);
+
+
+            var lswitch = BABYLON.MeshBuilder.CreateBox('lswitch', {width: 2, height: 3, depth: 0.5}, scene);
+            lswitch.position = new BABYLON.Vector3(-18, 15, -27);
+
+            // var lswitch = BABYLON.SceneLoader.ImportMeshAsync("", "Assets/light_switch_single/", "scene.gltf", scene).then((result) => {
+            //     for (var i = 0; i < result.meshes.length; i++){
+            //         var lswitch = result.meshes[i];
+            //         lswitch.scaling = new BABYLON.Vector3(5,5,5);
+            //         lswitch.position = new BABYLON.Vector3(-12, 15, -28);
+            //         //lswitch.rotation = new BABYLON.Vector3(0, 9, 0);
+            //         // lswitch.physicsImpostor = new BABYLON.PhysicsImpostor(lswitch, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 1, restitution: 0.9 }, scene);
+            //         // cup.physicsImpostor.applyImpulse(new BABYLON.Vector3(1, 1.50, -1), new BABYLON.Vector3(1, 2, 0));
+            //     }
+            // }
+            // );
+            
+            var sun = BABYLON.Mesh.CreateSphere('sun', 16, 1, scene);
+            sun.position = new BABYLON.Vector3(-12, 24.3, -26);
+
+            //var light2 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(0, 0, 0), scene);
+            var light2 = new BABYLON.DirectionalLight("DirectionalLight", new BABYLON.Vector3(0,0,0), scene);
+            light2.range = 200;
+            light2.intensity = 2;
+            light2.parent = sun;
+
+            var hl = new BABYLON.HighlightLayer("hg", scene);
+            hl.innerGlow = false;
+            hl.addMesh(sun, new BABYLON.Color3(.5, .5, .5))
+
+            var materialSphere = new BABYLON.StandardMaterial("sphere1", scene);
+            materialSphere.emissiveColor = new BABYLON.Color3(1.0, 1.0, 0.7);
+            sun.material = materialSphere;
+
+            var sun2 = BABYLON.Mesh.CreateSphere('sun2', 16, 1, scene);
+            sun2.position = new BABYLON.Vector3(12, 24.3, -26);
+
+            //var light2 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(0, 0, 0), scene);
+            var light3 = new BABYLON.DirectionalLight("DirectionalLight", new BABYLON.Vector3(0,0,0), scene);
+            light3.range = 200;
+            light3.intensity = 2;
+            light3.parent = sun2;
+
+            var h2 = new BABYLON.HighlightLayer("hg", scene);
+            h2.innerGlow = false;
+            h2.addMesh(sun2, new BABYLON.Color3(.5, .5, .5));
+
+            var materialSphere2 = new BABYLON.StandardMaterial("sphere2", scene);
+            materialSphere2.emissiveColor = new BABYLON.Color3(1.0, 1.0, 0.7);
+            sun2.material = materialSphere;
+
+            //light.setEnabled(false);
+            // light3.setEnabled(false);
+
+            // var light2 = new BABYLON.DirectionalLight("DirectionalLight", new BABYLON.Vector3(7,17,-48), scene);
+            // light2.intensity = 2;
+            var lightOn = true;
+            var musicOn = false;
+
+
+            environment.ground.physicsImpostor = new BABYLON.PhysicsImpostor(environment.ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.9 }, scene);
+            scene.getPhysicsEngine().setTimeStep(1 / 20);
 
             const tmpRay = new BABYLON.Ray();
             tmpRay.origin = new BABYLON.Vector3();
@@ -183,63 +313,105 @@
                         scene.activeCamera.onAfterCameraTeleport.add((targetPosition) => {
                             //var y = environment.ground.getHeightAtCoordinates(targetPosition.x,targetPosition.z) + 2;
                             scene.activeCamera.position.y = 15;
+                            console.log(scene.activeCamera.position);
                         });
         
                     }
         
             });
 
-            //xr controller
-            xrHelper.input.onControllerAddedObservable.add((controller) => {
-                controller.onMotionControllerInitObservable.add((motionController) => {
-                    if (motionController.handness === 'right') {
-                            const xr_ids = motionController.getComponentIds();
-                            let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
-                            triggerComponent.onButtonStateChangedObservable.add(() => {
-                                if(triggerComponent.value > 0.5){
-                                    controller.getWorldPointerRayToRef(tmpRay, true);
-                                    
-                                    hit = scene.pickWithRay(tmpRay);
+            
 
-                                    if (hit.pickedMesh !=undefined){
-                                        if (hit.pickedMesh.name == 'MOD_Mug12_MAT_MugPeach_0'){
-                                            tmpMesh = hit.pickedMesh;
-                                            //console.log("name:"+hit.pickedMesh.name);
-                                            //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
-                                            tmpMesh.showBoundingBox = true;
-                                            tmpMesh.setParent(motionController.rootMesh);           
-                                        
-                                        } else {
-                                            tmpMesh = hit.pickedMesh;
-                                            console.log("name:"+hit.pickedMesh.name);
-                                            //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
-                                            //tmpMesh.setParent(motionController.rootMesh);
-                                        }
-                                    }
+            //xr controller
+
+            xrHelper.input.onControllerAddedObservable.add((controller) => {
+            controller.onMotionControllerInitObservable.add((motionController) => {
+                if (motionController.handness === 'right') {
+                        const xr_ids = motionController.getComponentIds();
+                        let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+                        triggerComponent.onButtonStateChangedObservable.add(() => {
+                            if(triggerComponent.value > 0.5){
+                                controller.getWorldPointerRayToRef(tmpRay, true);
                                 
-                                //released button
-                                }else if (triggerComponent.value < 0.5){
-                                    if (tmpMesh !=undefined){
-                                    // tmpMesh.parent= null;
+                                hit = scene.pickWithRay(tmpRay);
+
+                                if (hit.pickedMesh !=undefined){
+                                    tmpMesh = hit.pickedMesh;
+                                    console.log("name:"+hit.pickedMesh.name);
+                                    //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
+                                    tmpMesh.showBoundingBox = true;
+                                    if (hit.pickedMesh.name != 'Stereo_Receiver_blinn2_0'){
+                                        tmpMesh.setParent(motionController.rootMesh);
+                                    } else {
                                         tmpMesh.setParent(null);
                                     }
-                                
+                                    
                                 }
-                            });
+                            
+                            //released button
+                            }else if (triggerComponent.value < 0.5){
+                                if (tmpMesh !=undefined){
+                                // tmpMesh.parent= null;
+                                    tmpMesh.setParent(null);
+                                }
+                            
+                            }
+                        });
 
-                    }
+                }
 
-                })
+            })
 
-            });    
+        });
+            // xrHelper.input.onControllerAddedObservable.add((controller) => {
+            //     controller.onMotionControllerInitObservable.add((motionController) => {
+            //         if (motionController.handness === 'right') {
+            //                 const xr_ids = motionController.getComponentIds();
+            //                 let triggerComponent = motionController.getComponent(xr_ids[0]);//xr-standard-trigger
+            //                 triggerComponent.onButtonStateChangedObservable.add(() => {
+            //                     if(triggerComponent.value > 0.5){
+            //                         controller.getWorldPointerRayToRef(tmpRay, true);
+            //                         hit = scene.pickWithRay(tmpRay);
+            //                         // if (hit.pickedMesh.name === 'stereo') {
+            //                         //     if (musicOn == false){
+            //                         //         console.log('music is playing');
+            //                         //         music.play();
+                                            
+            //                         //     } else if (musicOn == true){
+            //                         //         music.stop();
+            //                         //     }
+            //                         // } else {
+
+
+            //                         if (hit.pickedMesh !=undefined){
+            //                             tmpMesh = hit.pickedMesh;
+            //                             console.log("name:"+hit.pickedMesh.name);
+            //                             //tmpMesh.parent= controller.grip;//tmpMesh is set on inappropriate position.
+            //                             tmpMesh.showBoundingBox = true;
+            //                             tmpMesh.setParent(motionController.rootMesh);
+            //                         }
+            //                         // }
+            //                     //released button
+            //                     }else if (triggerComponent.value < 0.5){
+            //                         if (tmpMesh !=undefined){
+            //                         // tmpMesh.parent= null;
+            //                             tmpMesh.setParent(null);
+            //                         }
+                                
+            //                     }
+            //                 });
+
+            //         }
+
+            //     })
+
+            // });    
+
+            
+        
             return scene;
         
         };
-
-        //----------//
-        
-        //---------//
-
                 window.initFunction = async function() {
                     
                     
